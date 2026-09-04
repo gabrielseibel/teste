@@ -76,7 +76,7 @@ export class SupabaseKnowledgeProvider implements KnowledgeProvider {
   ): Promise<FactCheckMatch[]> {
     const { data, error } = await this.client.rpc('match_fact_checks', {
       query,
-      min_similarity: options?.minSimilarity ?? 0.2,
+      min_similarity: options?.minSimilarity ?? 0.35,
       match_count: options?.limit ?? 3,
     });
 

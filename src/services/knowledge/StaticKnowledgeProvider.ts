@@ -1,8 +1,19 @@
 import type { FactCheckMatch, KnowledgeProvider, KnownDomain, ScamPatternDef } from './KnowledgeProvider';
 import { FACT_CHECK_SOURCE_TITLE, STATIC_FACT_CHECKS, STATIC_KNOWN_DOMAINS, STATIC_SCAM_PATTERNS } from './staticData';
+import type { StaticFactCheck } from './staticData';
 import { diceCoefficient } from './textSimilarity';
 
-const DEFAULT_MIN_SIMILARITY = 0.2;
+/** Cada entrada pode trazer sua própria fonte; sem uma, usa o rótulo genérico padrão. */
+function resolveSource(fc: StaticFactCheck) {
+  return {
+    sourceTitle: fc.sourceTitle ?? FACT_CHECK_SOURCE_TITLE,
+    sourceUrl: fc.sourceUrl,
+    sourceType: fc.sourceType ?? ('fact_checking' as const),
+    sourceDate: fc.sourceDate ?? 'Recorrente',
+  };
+}
+
+const DEFAULT_MIN_SIMILARITY = 0.35;
 const DEFAULT_LIMIT = 3;
 
 /**
@@ -44,9 +55,7 @@ export class StaticKnowledgeProvider implements KnowledgeProvider {
       explanation: fc.explanation,
       redFlags: fc.redFlags,
       howToVerify: fc.howToVerify,
-      sourceTitle: FACT_CHECK_SOURCE_TITLE,
-      sourceType: 'fact_checking',
-      sourceDate: 'Recorrente',
+      ...resolveSource(fc),
       similarity,
     }));
   }

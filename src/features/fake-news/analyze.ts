@@ -9,7 +9,12 @@ export interface AnalyzeNewsOutcome {
   result: FakeNewsAnalysisResult;
 }
 
-const MIN_SIMILARITY = 0.22;
+// Limiar calibrado empiricamente: com a base de alegações maior, textos sem
+// nenhuma relação temática podem coincidir em ~0.20-0.24 só por palavras
+// comuns do português (ex.: "governo", "está", "não"). Correspondências reais
+// (mesma alegação parafraseada) tipicamente pontuam 0.5+. 0.35 mantém uma
+// margem de segurança confortável dos dois lados.
+const MIN_SIMILARITY = 0.35;
 const MAX_MATCHES = 3;
 
 /**
