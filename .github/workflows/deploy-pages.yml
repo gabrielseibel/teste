@@ -39,6 +39,13 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Tenta habilitar o GitHub Pages automaticamente (Source: GitHub
+          # Actions) via API caso ainda não esteja habilitado. Se o token
+          # usado no workflow não tiver permissão de administração do
+          # repositório, este passo falha e o Pages precisa ser habilitado
+          # manualmente uma vez em Settings > Pages > Source: GitHub Actions.
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
