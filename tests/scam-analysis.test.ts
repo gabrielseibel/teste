@@ -23,6 +23,14 @@ describe('analyzeScam (pipeline completo, motor determinístico)', () => {
     expect(result.type).toBe('scam');
   });
 
+  it('reconhece um relato narrado em discurso indireto (não só citação direta do golpista)', async () => {
+    const { result } = await analyzeScam({
+      narrative: 'Alguém me chamou dizendo que era do banco e precisava dos meus dados para ajustar.',
+    });
+    expect(['alto', 'muito_alto']).toContain(result.risk);
+    expect(result.signals.map((s) => s.id)).toContain('falso_funcionario_banco');
+  });
+
   it('ativa o modo de emergência quando a pessoa já fez o pagamento', async () => {
     const { result } = await analyzeScam({
       narrative: 'Já fiz o pix para a pessoa que se identificou como do banco, e agora estou preocupado.',

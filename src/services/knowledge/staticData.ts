@@ -143,7 +143,10 @@ export const STATIC_SCAM_PATTERNS: ScamPatternDef[] = [
     "keywords": [
       "me (envia|passa|manda) (seu |o )?cpf",
       "n[úu]mero do rg",
-      "confirme seus dados"
+      "confirme seus dados",
+      "(pediu|pedindo|precisava|precisa|queria|quer|solicitou) (de |dos )?(meus |os )?dados",
+      "ajustar (meus |os )?dados",
+      "atualizar (meus |os )?(dados|cadastro)"
     ]
   },
   {
@@ -189,7 +192,7 @@ export const STATIC_SCAM_PATTERNS: ScamPatternDef[] = [
     "severity": "alto",
     "category": "identidade_falsa",
     "keywords": [
-      "sou (do|da) (banco|caixa|ita[uú]|bradesco|santander|nubank)",
+      "(sou|era|é|seria|estava) (do|da) (banco|caixa|ita[uú]|bradesco|santander|nubank)",
       "gerente da sua conta",
       "central de seguran[çc]a do banco"
     ]
@@ -214,9 +217,9 @@ export const STATIC_SCAM_PATTERNS: ScamPatternDef[] = [
     "severity": "alto",
     "category": "identidade_falsa",
     "keywords": [
-      "sou (da )?pol[íi]cia",
+      "(sou|era|é) (da )?pol[íi]cia",
       "delegacia",
-      "sou policial"
+      "(sou|era|é) policial"
     ]
   },
   {
@@ -226,7 +229,7 @@ export const STATIC_SCAM_PATTERNS: ScamPatternDef[] = [
     "severity": "medio",
     "category": "identidade_falsa",
     "keywords": [
-      "sou (o |a )?advogad",
+      "(sou|era|é) (o |a )?advogad",
       "represento juridicamente"
     ]
   },
@@ -237,9 +240,9 @@ export const STATIC_SCAM_PATTERNS: ScamPatternDef[] = [
     "severity": "alto",
     "category": "identidade_falsa",
     "keywords": [
-      "é a mãe",
-      "é o pai",
-      "aqui é seu filho",
+      "(é|era) a mãe",
+      "(é|era) o pai",
+      "(aqui é|era) (seu |meu )?filho",
       "perdi meu celular",
       "esse é meu novo n[úu]mero"
     ]

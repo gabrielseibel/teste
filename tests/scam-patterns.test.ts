@@ -13,6 +13,15 @@ describe('catálogo de táticas de golpe (detecção determinística)', () => {
     expect(ids).toContain('pedido_codigo_sms');
   });
 
+  it('detecta falso funcionário de banco narrado em discurso indireto (não só citação direta)', () => {
+    // Caso real reportado: relatos de vítimas normalmente narram o golpe em
+    // discurso indireto ("disse que era..."), não citando o golpista em
+    // primeira pessoa ("sou do banco"). Os dois precisam ser reconhecidos.
+    const ids = idsOf('Alguém me chamou dizendo que era do banco e precisava dos meus dados para ajustar.');
+    expect(ids).toContain('falso_funcionario_banco');
+    expect(ids).toContain('pedido_dados_pessoais');
+  });
+
   it('detecta pedido de Pix para chave diferente (golpe de Pix)', () => {
     const ids = idsOf('O vendedor pediu para eu fazer um pix para essa chave diferente da loja.');
     expect(ids).toContain('pedido_pix');
