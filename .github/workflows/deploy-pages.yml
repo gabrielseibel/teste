@@ -1,0 +1,50 @@
+name: Deploy GitHub Pages
+
+# Publica a página estática de apresentação (github-pages/) no GitHub Pages.
+#
+# Importante: esta página é apenas apresentacional. O GitHub Pages hospeda
+# somente arquivos estáticos e não executa as rotas de API (backend) do
+# VERIFICA — a ferramenta funcional completa precisa rodar localmente ou em
+# um host com suporte a Node.js (ex.: Vercel). Ver README para detalhes.
+#
+# Pré-requisito único (manual, uma vez): em Settings > Pages deste
+# repositório, definir "Source" como "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "github-pages/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./github-pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

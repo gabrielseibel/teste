@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VERIFICA — Golpes & Notícias</title>
+  <meta
+    name="description"
+    content="Antes de pagar, clicar ou acreditar, verifique. Ferramenta gratuita e sem cadastro que usa Inteligência Artificial para analisar riscos de golpe e desinformação."
+  />
+  <meta name="theme-color" content="#1a6ff2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --brand-50: #eef7ff;
+      --brand-100: #d9edff;
+      --brand-500: #2f8fff;
+      --brand-600: #1a6ff2;
+      --brand-700: #1558d6;
+      --brand-800: #1747a8;
+      --slate-50: #f8fafc;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-900: #0f172a;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--slate-50);
+      color: var(--slate-900);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    a { color: inherit; }
+    img { max-width: 100%; }
+    :focus-visible {
+      outline: 3px solid var(--brand-600);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 999;
+      background: #fff;
+      color: var(--brand-700);
+      padding: 0.75rem 1.25rem;
+      border-radius: 0 0 8px 0;
+      font-weight: 600;
+    }
+    .skip-link:focus { left: 0; }
+
+    header.site-header {
+      border-bottom: 1px solid var(--slate-200);
+      background: #fff;
+    }
+    .site-header .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 800;
+      font-size: 1.125rem;
+      text-decoration: none;
+    }
+    .logo .muted { font-weight: 400; color: var(--slate-500); }
+    .tagline-small { font-size: 0.875rem; color: var(--slate-500); }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .banner {
+      margin-top: 1.5rem;
+      background: #fff7ed;
+      border: 2px solid #fdba74;
+      color: #9a3412;
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      font-size: 0.95rem;
+    }
+    .banner strong { display: block; margin-bottom: 0.25rem; }
+
+    .hero { text-align: center; padding: 3rem 0 2rem; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--brand-50);
+      color: var(--brand-700);
+      border-radius: 999px;
+      padding: 0.4rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 0 0 1.1rem;
+    }
+    .hero p.lead {
+      max-width: 640px;
+      margin: 0 auto;
+      font-size: 1.125rem;
+      color: var(--slate-600);
+    }
+
+    .modes {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: 1fr;
+      margin: 2.5rem 0;
+    }
+    @media (min-width: 640px) {
+      .modes { grid-template-columns: 1fr 1fr; }
+      h1 { font-size: 2.75rem; }
+    }
+    .mode-card {
+      border-radius: 1rem;
+      border: 2px solid;
+      padding: 1.75rem;
+    }
+    .mode-card.scam { background: #fef2f2; border-color: #fecaca; color: #7f1d1d; }
+    .mode-card.news { background: #eff6ff; border-color: #bfdbfe; color: #1e3a5f; }
+    .mode-card .emoji { font-size: 1.75rem; }
+    .mode-card h2 { font-size: 1.25rem; margin: 0.75rem 0 0.5rem; }
+    .mode-card p { margin: 0; opacity: 0.9; }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-bottom: 3rem;
+    }
+
+    .steps {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: 1fr;
+      margin-bottom: 3rem;
+    }
+    @media (min-width: 640px) {
+      .steps { grid-template-columns: repeat(3, 1fr); }
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--slate-200);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      background: var(--brand-100);
+      color: var(--brand-700);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    .card h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--slate-600); font-size: 0.925rem; }
+
+    section.run-locally {
+      background: var(--slate-900);
+      color: #f8fafc;
+      border-radius: 1.25rem;
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+    section.run-locally h2 { margin-top: 0; }
+    section.run-locally p { color: #cbd5e1; }
+    pre {
+      background: #020617;
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .btn-primary { background: var(--brand-600); color: #fff; }
+    .btn-primary:hover { background: var(--brand-700); }
+    .btn-outline { border: 2px solid #475569; color: #f8fafc; }
+    .btn-outline:hover { border-color: #94a3b8; }
+
+    footer.site-footer {
+      border-top: 1px solid var(--slate-200);
+      background: #fff;
+    }
+    footer.site-footer .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      font-size: 0.875rem;
+      color: var(--slate-500);
+    }
+    footer.site-footer p { margin: 0 0 0.75rem; }
+  </style>
+</head>
+<body>
+  <a href="#conteudo-principal" class="skip-link">Pular para o conteúdo principal</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a href="#conteudo-principal" class="logo">
+        <span aria-hidden="true">🛡️</span>
+        <span>VERIFICA <span class="muted">— Golpes &amp; Notícias</span></span>
+      </a>
+      <span class="tagline-small">Gratuito • Sem cadastro • Análise com IA</span>
+    </div>
+  </header>
+
+  <main id="conteudo-principal">
+    <div class="banner" role="note">
+      <span aria-hidden="true">ℹ️</span>
+      <div>
+        <strong>Esta é uma página de apresentação estática.</strong>
+        O GitHub Pages hospeda apenas arquivos estáticos e não executa o backend do VERIFICA (as rotas de
+        API que fazem a análise com IA). Para usar a ferramenta de verdade, rode o projeto localmente ou
+        publique-o em um host com suporte a Node.js (veja
+        <a href="#como-rodar">como rodar</a> logo abaixo).
+      </div>
+    </div>
+
+    <section class="hero">
+      <p class="pill">✨ Análise de risco com Inteligência Artificial</p>
+      <h1>Antes de pagar, clicar ou acreditar,<br />verifique.</h1>
+      <p class="lead">
+        Envie uma mensagem, situação ou notícia e descubra quais sinais de golpe ou desinformação
+        existem — em segundos, sem cadastro.
+      </p>
+    </section>
+
+    <section class="modes" aria-label="Modos da ferramenta">
+      <div class="mode-card scam">
+        <span class="emoji" aria-hidden="true">🚨</span>
+        <h2>Estão tentando me dar um golpe</h2>
+        <p>Analise uma mensagem, ligação ou situação suspeita e veja o que fazer agora.</p>
+      </div>
+      <div class="mode-card news">
+        <span class="emoji" aria-hidden="true">📰</span>
+        <h2>Essa notícia é verdade?</h2>
+        <p>Verifique uma notícia, mensagem de WhatsApp ou informação que você recebeu.</p>
+      </div>
+    </section>
+
+    <div class="stats">
+      <span>🛡️ Gratuito</span>
+      <span aria-hidden="true">•</span>
+      <span>Sem cadastro</span>
+      <span aria-hidden="true">•</span>
+      <span>🔎 Análise com IA</span>
+    </div>
+
+    <section class="steps" aria-label="Como funciona">
+      <div class="card">
+        <span class="step-number">1</span>
+        <h3>Conte o que aconteceu</h3>
+        <p>Cole a mensagem, descreva a situação ou compartilhe a notícia que você quer verificar.</p>
+      </div>
+      <div class="card">
+        <span class="step-number">2</span>
+        <h3>Nós procuramos os sinais</h3>
+        <p>A IA identifica táticas conhecidas de golpe ou de desinformação, como um scanner.</p>
+      </div>
+      <div class="card">
+        <span class="step-number">3</span>
+        <h3>Veja exatamente o que fazer</h3>
+        <p>Receba uma explicação simples, com passo a passo do que fazer agora e o que evitar.</p>
+      </div>
+    </section>
+
+    <section class="run-locally" id="como-rodar" aria-label="Como rodar o projeto">
+      <h2>Como rodar a ferramenta de verdade</h2>
+      <p>
+        O código completo (frontend + backend + IA + segurança + testes) está aberto no repositório do
+        GitHub. Funciona sem nenhuma chave de API — nesse caso, usa uma análise determinística baseada em
+        um catálogo de táticas de golpe conhecidas.
+      </p>
+      <pre><code>git clone https://github.com/gabrielseibel/teste.git
+cd teste
+npm install
+npm run dev
+# abre em http://localhost:3000</code></pre>
+      <p>Para publicar a versão funcional (com backend) online, use um host com suporte a Node.js, como a Vercel.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="https://github.com/gabrielseibel/teste">Ver código no GitHub</a>
+        <a class="btn btn-outline" href="https://github.com/gabrielseibel/teste#readme">Ler o README completo</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>
+        Esta ferramenta fornece uma análise automatizada para ajudar na tomada de decisão. Ela não
+        substitui orientação profissional, investigação oficial ou confirmação diretamente com a
+        instituição envolvida.
+      </p>
+      <p>
+        Em casos de risco financeiro ou criminal, procure os canais oficiais adequados. Se você estiver em
+        perigo imediato, procure ajuda e os serviços de emergência apropriados sem demora.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
