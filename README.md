@@ -185,6 +185,17 @@ Node.js runtime):
 Nunca defina chaves de API como variáveis `NEXT_PUBLIC_*` — todas as chaves deste projeto são lidas
 exclusivamente no servidor (rotas `src/app/api/**`).
 
+### GitHub Pages (apenas página de apresentação)
+
+O GitHub Pages hospeda somente arquivos estáticos — ele **não** executa o backend Node.js do VERIFICA, então
+os modos de análise não funcionam ali. Para quem quiser um link público simples explicando o projeto, o
+repositório inclui uma página estática em [`github-pages/index.html`](github-pages/index.html), publicada
+automaticamente pelo workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
+a cada push em `main` que altere essa pasta.
+
+Passo único e manual para ativar (feito uma vez pelo dono do repositório): em **Settings → Pages**, defina
+**Source** como **GitHub Actions**. Depois disso, o workflow publica a página automaticamente.
+
 ---
 
 ## Variáveis de ambiente
