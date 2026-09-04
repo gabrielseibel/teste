@@ -1,11 +1,11 @@
 /**
  * Mascaramento automático de dados pessoais sensíveis (Privacy by Design).
  *
- * Antes de qualquer conteúdo do usuário ser enviado ao provedor de IA (e antes
- * de ser incluído em qualquer log), aplicamos este mascaramento. O objetivo é
- * reduzir a superfície de exposição de dados sensíveis sem impedir a análise:
- * a IA ainda consegue entender "um código de 6 dígitos foi solicitado" mesmo
- * com o código real substituído por [CÓDIGO MASCARADO].
+ * Antes de qualquer conteúdo do usuário ser processado pelo motor de análise
+ * (e antes de ser incluído em qualquer log), aplicamos este mascaramento. O
+ * objetivo é reduzir a superfície de exposição de dados sensíveis sem impedir
+ * a análise: o motor ainda consegue reconhecer "um código de 6 dígitos foi
+ * solicitado" mesmo com o código real substituído por [CÓDIGO MASCARADO].
  *
  * Este módulo é heurístico (regex) — não é uma DLP completa. Ele cobre os
  * padrões mais comuns citados no briefing do produto.

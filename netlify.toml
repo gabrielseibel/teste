@@ -1,0 +1,16 @@
+# Configuração de deploy no Netlify.
+#
+# O Netlify detecta Next.js automaticamente e usa o runtime oficial
+# (@netlify/plugin-nextjs) para servir as rotas de API (src/app/api/**) como
+# Netlify Functions — nenhuma mudança de código é necessária.
+#
+# Configure as variáveis de ambiente (SUPABASE_URL, SUPABASE_ANON_KEY,
+# OCR_ENABLED) em Site settings > Environment variables no painel do
+# Netlify. Sem elas, o app funciona normalmente usando a base de
+# conhecimento estática embutida no código.
+
+[build]
+  command = "npm run build"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

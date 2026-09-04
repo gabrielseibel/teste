@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 /**
- * Schema Zod usado para validar a saída estruturada da IA. Se a resposta do
- * modelo não passar nessa validação, ela é descartada e o sistema recorre a
- * uma resposta segura de fallback ("não foi possível confirmar") — nunca
- * repassamos ao usuário um JSON malformado ou fora do contrato esperado.
+ * Schema Zod usado para validar o resultado montado pelo motor determinístico
+ * (features/scam-analysis/engine.ts) antes de ser devolvido ao usuário — uma
+ * rede de segurança contra qualquer inconsistência na construção do objeto,
+ * garantindo que a resposta nunca fuja do contrato esperado pelo frontend.
  */
 
 export const scamRiskLevelSchema = z.enum([

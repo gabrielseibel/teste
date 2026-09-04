@@ -11,7 +11,7 @@ export function Header() {
             VERIFICA <span className="font-normal text-slate-500">— Golpes & Notícias</span>
           </span>
         </Link>
-        <p className="hidden text-sm text-slate-500 sm:block">Gratuito • Sem cadastro • Análise com IA</p>
+        <p className="hidden text-sm text-slate-500 sm:block">Gratuito • Sem cadastro • Análise automatizada</p>
       </div>
     </header>
   );

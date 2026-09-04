@@ -13,8 +13,8 @@ export type ConfidenceLevel = 'alta' | 'media' | 'baixa';
 
 export interface EvidenceItem {
   statement: string;
-  /** 'fato_encontrado' = veio de uma fonte concreta; 'inferencia_ia' = raciocínio da IA sem fonte direta */
-  kind: 'fato_encontrado' | 'inferencia_ia';
+  /** 'fato_encontrado' = veio de um registro concreto da base de conhecimento; 'inferencia_do_sistema' = dedução sem correspondência direta */
+  kind: 'fato_encontrado' | 'inferencia_do_sistema';
   supports: 'verdadeira' | 'falsa' | 'neutro';
 }
 

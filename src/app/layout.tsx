@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 export const metadata: Metadata = {
   title: 'VERIFICA — Golpes & Notícias',
   description:
-    'Antes de pagar, clicar ou acreditar, verifique. Ferramenta gratuita e sem cadastro para analisar riscos de golpe e desinformação com apoio de Inteligência Artificial.',
+    'Antes de pagar, clicar ou acreditar, verifique. Ferramenta gratuita e sem cadastro para analisar riscos de golpe e desinformação com base em um catálogo de padrões conhecidos.',
   metadataBase: undefined,
 };
 

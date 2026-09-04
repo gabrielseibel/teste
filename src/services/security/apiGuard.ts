@@ -9,7 +9,7 @@ export interface RateLimitCheckResult {
 /**
  * Aplica dois limites simultaneamente: um limite anti-burst (mais permissivo,
  * pega automações muito agressivas) e um limite de análises (mais restrito,
- * protege o custo de chamadas ao provedor de IA).
+ * protege o serviço contra abuso/spam).
  */
 export function checkRateLimit(request: Request): RateLimitCheckResult {
   const identifier = getClientIdentifier(request.headers);

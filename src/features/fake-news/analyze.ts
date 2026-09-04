@@ -1,96 +1,47 @@
-import { getAIProvider } from '@/services/ai';
-import { parseStructuredJson } from '@/services/ai/parseStructuredJson';
-import { getSearchProvider } from '@/services/search';
-import type { SearchResultItem } from '@/services/search/SearchProvider';
+import { getKnowledgeProvider } from '@/services/knowledge';
 import { maskPii } from '@/services/security/piiMask';
-import { annotateInjectionAttempts } from '@/services/security/promptGuard';
 import { analyzeUrl } from '@/services/url-analysis/analyzeUrl';
-import { buildDeterministicNewsAnalysis } from './fallback';
-import { buildFakeNewsUserMessage, FAKE_NEWS_SYSTEM_PROMPT } from './prompt';
-import { fakeNewsAnalysisResultSchema } from './schema';
+import { buildFakeNewsAnalysis } from './engine';
+import { detectSensationalistLanguage } from './redFlags';
 import type { FakeNewsAnalysisInput, FakeNewsAnalysisResult } from './types';
-
-const AI_TIMEOUT_MS = 30_000;
-const SEARCH_TIMEOUT_MS = 10_000;
 
 export interface AnalyzeNewsOutcome {
   result: FakeNewsAnalysisResult;
-  aiUsed: boolean;
-  searchUsed: boolean;
 }
 
-function buildSearchQuery(input: FakeNewsAnalysisInput): string {
-  if (input.url) return input.url;
-  return input.content.slice(0, 200);
-}
+const MIN_SIMILARITY = 0.22;
+const MAX_MATCHES = 3;
 
-async function trySearch(input: FakeNewsAnalysisInput): Promise<SearchResultItem[]> {
-  const provider = getSearchProvider();
-  if (provider.name === 'noop') return [];
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
-  try {
-    return await provider.search(buildSearchQuery(input), { maxResults: 6, signal: controller.signal });
-  } catch {
-    // Falha de busca não deve derrubar a análise — apenas seguimos sem
-    // resultados externos, e o pipeline já sabe responder honestamente
-    // nesse caso ("não confirmada").
-    return [];
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-function mergeUrlWarnings(result: FakeNewsAnalysisResult, warnings: string[]): FakeNewsAnalysisResult {
-  if (warnings.length === 0) return result;
-  return { ...result, redFlags: [...result.redFlags, ...warnings] };
-}
-
+/**
+ * Motor de fact-checking — 100% determinístico, sem chamada a nenhuma IA
+ * generativa nem serviço de busca. Compara o conteúdo enviado pelo usuário
+ * contra uma base curada de alegações já verificadas (KnowledgeProvider:
+ * Supabase por padrão, com fallback estático embutido) por similaridade de
+ * texto. Sem correspondência suficiente, a resposta é honestamente "não
+ * confirmada" — nunca uma afirmação sem base.
+ */
 export async function analyzeNews(rawInput: FakeNewsAnalysisInput): Promise<AnalyzeNewsOutcome> {
   const { masked: maskedContent } = maskPii(rawInput.content);
   const maskedImageOcr = rawInput.imageOcrText ? maskPii(rawInput.imageOcrText).masked : undefined;
   const input: FakeNewsAnalysisInput = { ...rawInput, content: maskedContent, imageOcrText: maskedImageOcr };
 
-  const fullText = [input.content, input.imageOcrText ?? ''].filter(Boolean).join('\n');
-  const { suspicious: injectionSuspected } = annotateInjectionAttempts(fullText);
-  const urlWarnings = input.url ? analyzeUrl(input.url).warnings : [];
+  const answersText = (input.previousAnswers ?? []).map((a) => `${a.question} ${a.answer}`).join('\n');
+  // A consulta de similaridade usa apenas o conteúdo principal (+ OCR), sem
+  // as respostas de esclarecimento — texto extra tende a diluir a
+  // similaridade por trigramas em vez de ajudar. As respostas ainda entram
+  // na varredura de linguagem sensacionalista abaixo.
+  const matchQuery = [input.content, input.imageOcrText ?? ''].filter(Boolean).join('\n');
+  const fullText = [matchQuery, answersText].filter(Boolean).join('\n');
 
-  const searchResults = await trySearch(input);
+  const knowledge = getKnowledgeProvider();
+  const [matches, knownDomains] = await Promise.all([
+    knowledge.matchFactChecks(matchQuery, { minSimilarity: MIN_SIMILARITY, limit: MAX_MATCHES }),
+    input.url ? knowledge.getKnownDomains() : Promise.resolve([]),
+  ]);
 
-  const provider = getAIProvider();
-  if (!provider) {
-    const fallback = buildDeterministicNewsAnalysis(input);
-    return { result: mergeUrlWarnings(fallback, urlWarnings), aiUsed: false, searchUsed: searchResults.length > 0 };
-  }
+  const sensationalistRedFlags = detectSensationalistLanguage(fullText);
+  const urlWarnings = input.url ? analyzeUrl(input.url, knownDomains.map((d) => d.domain)).warnings : [];
 
-  const user = buildFakeNewsUserMessage({ input, searchResults, injectionSuspected });
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
-
-  try {
-    const completion = await provider.complete({
-      system: FAKE_NEWS_SYSTEM_PROMPT,
-      user,
-      signal: controller.signal,
-      maxTokens: 2400,
-    });
-
-    const parsed = parseStructuredJson(completion.text, fakeNewsAnalysisResultSchema);
-    if (!parsed.success || !parsed.data) {
-      const fallback = buildDeterministicNewsAnalysis(input);
-      return { result: mergeUrlWarnings(fallback, urlWarnings), aiUsed: false, searchUsed: searchResults.length > 0 };
-    }
-
-    return {
-      result: mergeUrlWarnings(parsed.data, urlWarnings),
-      aiUsed: true,
-      searchUsed: searchResults.length > 0,
-    };
-  } catch {
-    const fallback = buildDeterministicNewsAnalysis(input);
-    return { result: mergeUrlWarnings(fallback, urlWarnings), aiUsed: false, searchUsed: searchResults.length > 0 };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  const result = buildFakeNewsAnalysis(matchQuery, matches, [...sensationalistRedFlags, ...urlWarnings]);
+  return { result };
 }

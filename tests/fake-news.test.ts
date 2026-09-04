@@ -1,34 +1,43 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { analyzeNews } from '@/features/fake-news/analyze';
-import { __resetAIProviderCacheForTests } from '@/services/ai';
-import { __resetSearchProviderCacheForTests } from '@/services/search';
+import { __resetKnowledgeProviderCacheForTests } from '@/services/knowledge';
 
-// Sem provedor de IA nem de busca configurados no ambiente de teste, o
-// pipeline usa a análise determinística de fallback. Isso é, por design,
-// o comportamento honesto esperado: nunca inventar fontes ou classificar
-// como verdadeira/falsa sem evidência real.
-describe('analyzeNews (pipeline completo, modo determinístico sem IA/busca)', () => {
+// Sem SUPABASE_URL configurada no ambiente de teste, o motor usa a base
+// curada de alegações conhecidas embutida no código (services/knowledge/staticData.ts).
+describe('analyzeNews (pipeline completo, motor determinístico por similaridade)', () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
-    __resetAIProviderCacheForTests();
-    __resetSearchProviderCacheForTests();
+    __resetKnowledgeProviderCacheForTests();
   });
 
-  const cases: Array<{ label: string; content: string }> = [
-    { label: 'notícia verdadeira (sem meios de confirmar sem IA/busca)', content: 'O Banco Central anunciou hoje uma nova taxa de juros básica após reunião do Copom.' },
-    { label: 'notícia falsa (afirmação extraordinária)', content: 'Todos os brasileiros vão receber R$ 2.000 do governo a partir de amanhã, sem nenhuma condição.' },
-    { label: 'notícia antiga apresentada como atual', content: 'Urgente: acabou de ser confirmado o fato que aconteceu há alguns anos, compartilhe antes que apaguem.' },
-    { label: 'conteúdo fora de contexto', content: 'Essa foto mostra o que está acontecendo agora na cidade, mas parece ser de outro lugar e outra época.' },
-    { label: 'manchete verdadeira com texto enganoso', content: 'Manchete: empresa anuncia resultado recorde — no texto, o resultado é na verdade um prejuízo.' },
-    { label: 'sátira', content: 'Segundo o jornal satírico, um político prometeu resolver todos os problemas do país em um dia.' },
+  it('reconhece uma alegação que corresponde a um boato conhecido (WhatsApp vai cobrar)', async () => {
+    const { result } = await analyzeNews({
+      content: 'Estão avisando no grupo da família que o WhatsApp vai começar a cobrar mensalidade agora.',
+    });
+
+    expect(result.classification).toBe('provavelmente_falsa');
+    expect(result.sources.length).toBeGreaterThan(0);
+    expect(result.evidence.length).toBeGreaterThan(0);
+    expect(['alta', 'media', 'baixa']).toContain(result.confidence);
+  });
+
+  it('reconhece o padrão de imagem/vídeo antigo fora de contexto', async () => {
+    const { result } = await analyzeNews({
+      content: 'Um vídeo de um desastre antigo está sendo compartilhado como se fosse de um acontecimento atual agora.',
+    });
+
+    expect(result.classification).toBe('enganosa_fora_de_contexto');
+  });
+
+  const semCorrespondencia: Array<{ label: string; content: string }> = [
+    { label: 'notícia sem relação com a base conhecida', content: 'O time local venceu o campeonato regional de vôlei neste fim de semana.' },
     { label: 'opinião apresentada como fato', content: 'Na minha opinião esse governo é o pior de todos os tempos, e isso é um fato inquestionável.' },
-    { label: 'informação sem evidência suficiente', content: 'Alguém me contou que uma empresa vai fechar as portas, mas não tenho mais detalhes.' },
+    { label: 'informação sem evidência suficiente', content: 'Alguém me contou que uma empresa da região vai fechar as portas, mas não tenho mais detalhes sobre isso.' },
   ];
 
-  for (const { label, content } of cases) {
-    it(`nunca inventa fontes nem classifica com certeza sem evidência — caso: ${label}`, async () => {
-      const { result, aiUsed } = await analyzeNews({ content });
-      expect(aiUsed).toBe(false);
+  for (const { label, content } of semCorrespondencia) {
+    it(`classifica como não confirmada e não inventa fontes — caso: ${label}`, async () => {
+      const { result } = await analyzeNews({ content });
       expect(result.classification).toBe('nao_confirmada');
       expect(result.sources).toHaveLength(0);
       expect(result.explanation.toLowerCase()).toContain('não consegui confirmar');

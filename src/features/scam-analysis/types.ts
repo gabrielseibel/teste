@@ -20,7 +20,7 @@ export interface ScamSignal {
   label: string;
   description: string;
   severity: SignalSeverity;
-  /** true quando detectado por regra determinística (catálogo), false quando só a IA identificou */
+  /** true quando veio do catálogo de táticas; false para sinais adicionais (ex.: análise de URL) */
   fromCatalog: boolean;
 }
 

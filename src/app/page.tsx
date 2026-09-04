@@ -7,7 +7,7 @@ export default function HomePage() {
       <section className="text-center">
         <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
-          Análise de risco com Inteligência Artificial
+          Análise de risco automatizada e gratuita
         </p>
         <h1 className="text-3xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
           Antes de pagar, clicar ou acreditar,
@@ -46,7 +46,7 @@ export default function HomePage() {
         <span>Sem cadastro</span>
         <span aria-hidden="true">•</span>
         <span className="inline-flex items-center gap-1.5">
-          <ScanSearch className="h-4 w-4 text-brand-600" aria-hidden="true" /> Análise com IA
+          <ScanSearch className="h-4 w-4 text-brand-600" aria-hidden="true" /> Análise automatizada
         </span>
       </section>
 
@@ -59,7 +59,7 @@ export default function HomePage() {
         <HowItWorksStep
           step={2}
           title="Nós procuramos os sinais"
-          description="Nossa IA identifica táticas conhecidas de golpe ou de desinformação, como um scanner."
+          description="Nosso sistema compara com táticas conhecidas de golpe ou de desinformação, como um scanner."
         />
         <HowItWorksStep
           step={3}

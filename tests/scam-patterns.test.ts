@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { detectEmergency, scanForScamPatterns } from '@/features/scam-analysis/patterns';
+import { STATIC_SCAM_PATTERNS } from '@/services/knowledge/staticData';
 
 function idsOf(text: string) {
-  return scanForScamPatterns(text).map((p) => p.id);
+  return scanForScamPatterns(text, STATIC_SCAM_PATTERNS).map((p) => p.id);
 }
 
 describe('catálogo de táticas de golpe (detecção determinística)', () => {

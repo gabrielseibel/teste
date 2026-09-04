@@ -4,8 +4,8 @@
  * A aplicação nunca renderiza HTML vindo do usuário com `dangerouslySetInnerHTML`
  * — o React já escapa texto por padrão, o que neutraliza XSS na maior parte
  * dos casos. Ainda assim, removemos ativamente marcações de script/HTML do
- * texto antes de persistir em logs ou enviar ao provedor de IA, como defesa
- * em profundidade.
+ * texto antes de persistir em logs ou processá-lo no motor de análise, como
+ * defesa em profundidade.
  */
 
 export const LIMITS = {

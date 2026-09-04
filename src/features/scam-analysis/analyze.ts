@@ -1,19 +1,12 @@
-import { getAIProvider } from '@/services/ai';
-import { parseStructuredJson } from '@/services/ai/parseStructuredJson';
+import { getKnowledgeProvider } from '@/services/knowledge';
 import { analyzeUrl } from '@/services/url-analysis/analyzeUrl';
 import { maskPii } from '@/services/security/piiMask';
-import { annotateInjectionAttempts } from '@/services/security/promptGuard';
-import { buildDeterministicScamAnalysis } from './fallback';
+import { buildScamAnalysis } from './engine';
 import { detectEmergency, scanForScamPatterns } from './patterns';
-import { buildScamUserMessage, SCAM_SYSTEM_PROMPT } from './prompt';
-import { scamAnalysisResultSchema } from './schema';
 import type { ScamAnalysisInput, ScamAnalysisResult } from './types';
-
-const AI_TIMEOUT_MS = 30_000;
 
 export interface AnalyzeScamOutcome {
   result: ScamAnalysisResult;
-  aiUsed: boolean;
 }
 
 function mergeUrlWarnings(result: ScamAnalysisResult, warnings: string[]): ScamAnalysisResult {
@@ -33,57 +26,30 @@ function mergeUrlWarnings(result: ScamAnalysisResult, warnings: string[]): ScamA
   };
 }
 
-/** Defesa em profundidade: força o modo de emergência se a detecção determinística encontrar frases de dano já ocorrido, mesmo que a IA não tenha sinalizado. */
-function enforceEmergencyFloor(result: ScamAnalysisResult, fullText: string): ScamAnalysisResult {
-  if (result.emergency.isEmergency || !detectEmergency(fullText)) return result;
-  const fallback = buildDeterministicScamAnalysis({ narrative: fullText });
-  return {
-    ...result,
-    emergency: fallback.emergency,
-  };
-}
-
+/**
+ * Motor de análise de golpes — 100% determinístico, sem chamada a nenhuma
+ * IA generativa. Compara o relato do usuário contra o catálogo de táticas
+ * conhecidas (KnowledgeProvider: Supabase por padrão, com fallback estático
+ * embutido) e monta o resultado a partir dos sinais efetivamente
+ * encontrados.
+ */
 export async function analyzeScam(rawInput: ScamAnalysisInput): Promise<AnalyzeScamOutcome> {
   const { masked: maskedNarrative } = maskPii(rawInput.narrative);
   const maskedImageOcr = rawInput.imageOcrText ? maskPii(rawInput.imageOcrText).masked : undefined;
   const input: ScamAnalysisInput = { ...rawInput, narrative: maskedNarrative, imageOcrText: maskedImageOcr };
 
-  const fullText = [input.narrative, input.link ?? '', input.imageOcrText ?? ''].filter(Boolean).join('\n');
-  const catalogHints = scanForScamPatterns(fullText);
-  const { suspicious: injectionSuspected } = annotateInjectionAttempts(fullText);
+  const answersText = (input.previousAnswers ?? []).map((a) => `${a.question} ${a.answer}`).join('\n');
+  const fullText = [input.narrative, input.link ?? '', input.imageOcrText ?? '', answersText]
+    .filter(Boolean)
+    .join('\n');
 
-  const urlWarnings = input.link ? analyzeUrl(input.link).warnings : [];
+  const knowledge = getKnowledgeProvider();
+  const [patterns, knownDomains] = await Promise.all([knowledge.getScamPatterns(), knowledge.getKnownDomains()]);
 
-  const provider = getAIProvider();
-  if (!provider) {
-    const fallback = buildDeterministicScamAnalysis(input);
-    return { result: mergeUrlWarnings(fallback, urlWarnings), aiUsed: false };
-  }
+  const matches = scanForScamPatterns(fullText, patterns);
+  const isEmergency = detectEmergency(fullText);
+  const urlWarnings = input.link ? analyzeUrl(input.link, knownDomains.map((d) => d.domain)).warnings : [];
 
-  const user = buildScamUserMessage({ input, catalogHints, injectionSuspected });
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
-
-  try {
-    const completion = await provider.complete({
-      system: SCAM_SYSTEM_PROMPT,
-      user,
-      signal: controller.signal,
-      maxTokens: 2200,
-    });
-
-    const parsed = parseStructuredJson(completion.text, scamAnalysisResultSchema);
-    if (!parsed.success || !parsed.data) {
-      const fallback = buildDeterministicScamAnalysis(input);
-      return { result: mergeUrlWarnings(fallback, urlWarnings), aiUsed: false };
-    }
-
-    const enforced = enforceEmergencyFloor(parsed.data, fullText);
-    return { result: mergeUrlWarnings(enforced, urlWarnings), aiUsed: true };
-  } catch {
-    const fallback = buildDeterministicScamAnalysis(input);
-    return { result: mergeUrlWarnings(fallback, urlWarnings), aiUsed: false };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  const result = buildScamAnalysis(matches, isEmergency);
+  return { result: mergeUrlWarnings(result, urlWarnings) };
 }

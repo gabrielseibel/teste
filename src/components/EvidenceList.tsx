@@ -2,7 +2,7 @@ import { FileSearch } from 'lucide-react';
 
 interface EvidenceItem {
   statement: string;
-  kind: 'fato_encontrado' | 'inferencia_ia';
+  kind: 'fato_encontrado' | 'inferencia_do_sistema';
   supports: 'verdadeira' | 'falsa' | 'neutro';
 }
 
@@ -33,7 +33,7 @@ export function EvidenceList({ evidence }: { evidence: EvidenceItem[] }) {
                     : 'rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600'
                 }
               >
-                {item.kind === 'fato_encontrado' ? 'Fato encontrado em fonte' : 'Inferência da IA'}
+                {item.kind === 'fato_encontrado' ? 'Fato encontrado em fonte' : 'Inferência do sistema'}
               </span>
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
                 {SUPPORTS_LABEL[item.supports]}

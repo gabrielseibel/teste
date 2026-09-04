@@ -70,8 +70,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { result, aiUsed } = await analyzeScam({ ...parsedInput.data, imageOcrText });
-    return NextResponse.json({ result, meta: { aiUsed, imageWarning: imageWarning ?? null } });
+    const { result } = await analyzeScam({ ...parsedInput.data, imageOcrText });
+    return NextResponse.json({ result, meta: { imageWarning: imageWarning ?? null } });
   } catch (err) {
     console.error('[api/analyze/scam] erro inesperado', err instanceof Error ? err.message : err);
     return serverError();

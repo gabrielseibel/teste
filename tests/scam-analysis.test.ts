@@ -1,23 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { analyzeScam } from '@/features/scam-analysis/analyze';
-import { __resetAIProviderCacheForTests } from '@/services/ai';
+import { __resetKnowledgeProviderCacheForTests } from '@/services/knowledge';
 
-// Sem ANTHROPIC_API_KEY/OPENAI_API_KEY no ambiente de teste, o sistema usa a
-// análise determinística de fallback — o que nos permite testar de ponta a
+// Sem SUPABASE_URL configurada no ambiente de teste, o motor usa a base de
+// conhecimento estática embutida — o que nos permite testar de ponta a
 // ponta sem depender de rede ou credenciais.
-describe('analyzeScam (pipeline completo, modo determinístico sem IA)', () => {
+describe('analyzeScam (pipeline completo, motor determinístico)', () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
-    __resetAIProviderCacheForTests();
+    __resetKnowledgeProviderCacheForTests();
   });
 
   it('escala para risco alto/muito_alto quando há múltiplos sinais graves de golpe', async () => {
-    const { result, aiUsed } = await analyzeScam({
+    const { result } = await analyzeScam({
       narrative:
         'Recebi uma ligação urgente, detectaram uma compra suspeita e pediram o código que chegou por SMS, dizendo que sua conta será bloqueada se eu não informar agora.',
     });
 
-    expect(aiUsed).toBe(false);
     expect(['alto', 'muito_alto']).toContain(result.risk);
     expect(result.signals.length).toBeGreaterThan(0);
     expect(result.disclaimer).toBeTruthy();
@@ -64,5 +63,14 @@ describe('analyzeScam (pipeline completo, modo determinístico sem IA)', () => {
     const serialized = JSON.stringify(result);
     expect(serialized).not.toContain('123.456.789-00');
     expect(serialized).not.toContain('vitima@example.com');
+  });
+
+  it('considera as respostas de perguntas de esclarecimento na nova análise', async () => {
+    const { result } = await analyzeScam({
+      narrative: 'Recebi uma mensagem de uma pessoa desconhecida.',
+      previousAnswers: [{ question: 'Essa pessoa pediu algum pagamento?', answer: 'Sim, pediram um pix urgente' }],
+    });
+    // A resposta livre entra na mesma varredura de texto do relato original.
+    expect(result.signals.some((s) => s.id === 'pedido_pix' || s.id === 'urgencia_artificial')).toBe(true);
   });
 });

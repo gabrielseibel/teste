@@ -12,7 +12,7 @@ export const confidenceLevelSchema = z.enum(['alta', 'media', 'baixa']);
 
 export const evidenceItemSchema = z.object({
   statement: z.string().min(1).max(400),
-  kind: z.enum(['fato_encontrado', 'inferencia_ia']),
+  kind: z.enum(['fato_encontrado', 'inferencia_do_sistema']),
   supports: z.enum(['verdadeira', 'falsa', 'neutro']),
 });
 

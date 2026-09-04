@@ -69,8 +69,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { result, aiUsed, searchUsed } = await analyzeNews({ ...parsedInput.data, imageOcrText });
-    return NextResponse.json({ result, meta: { aiUsed, searchUsed, imageWarning: imageWarning ?? null } });
+    const { result } = await analyzeNews({ ...parsedInput.data, imageOcrText });
+    return NextResponse.json({ result, meta: { imageWarning: imageWarning ?? null } });
   } catch (err) {
     console.error('[api/analyze/news] erro inesperado', err instanceof Error ? err.message : err);
     return serverError();
