@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { isSafePublicHttpUrl, sanitizeUserText, stripHtml, LIMITS } from '@/services/security/sanitize';
-import { InMemoryRateLimiter } from '@/services/security/rateLimit';
 import { validateImageUpload } from '@/services/image/validateUpload';
 import { analyzeUrl } from '@/services/url-analysis/analyzeUrl';
 
@@ -10,6 +9,13 @@ import { analyzeUrl } from '@/services/url-analysis/analyzeUrl';
 // base de conhecimento, nunca interpretado como instrução por um LLM. Essa
 // classe de vulnerabilidade (manipular um prompt de sistema) simplesmente
 // não se aplica a essa arquitetura — não há prompt para injetar.
+//
+// Nota sobre rate limiting: o VERIFICA não tem backend próprio (roda como
+// site estático, análise no navegador, dados vindos do Supabase com a
+// "anon key" pública). Não há mais um limitador de requisições por IP no
+// código do app — essa proteção contra abuso passou a ser responsabilidade
+// do próprio Supabase (limites de uso do projeto), como em qualquer app
+// que fala diretamente com um backend-as-a-service. Ver README.
 
 describe('proteção contra XSS / sanitização de texto', () => {
   it('remove tags <script> do texto do usuário', () => {
@@ -86,25 +92,5 @@ describe('validação de upload de imagem', () => {
 
   it('rejeita arquivo vazio', () => {
     expect(validateImageUpload(new Uint8Array(0), 'image/png').valid).toBe(false);
-  });
-});
-
-describe('rate limiting anti-abuso (anti-spam)', () => {
-  it('bloqueia após exceder o limite configurado dentro da janela', () => {
-    const limiter = new InMemoryRateLimiter(3, 60_000);
-    const id = 'test-client-1';
-    expect(limiter.check(id).allowed).toBe(true);
-    expect(limiter.check(id).allowed).toBe(true);
-    expect(limiter.check(id).allowed).toBe(true);
-    const fourth = limiter.check(id);
-    expect(fourth.allowed).toBe(false);
-    expect(fourth.remaining).toBe(0);
-  });
-
-  it('mantém clientes diferentes com contadores independentes', () => {
-    const limiter = new InMemoryRateLimiter(1, 60_000);
-    expect(limiter.check('cliente-a').allowed).toBe(true);
-    expect(limiter.check('cliente-b').allowed).toBe(true);
-    expect(limiter.check('cliente-a').allowed).toBe(false);
   });
 });

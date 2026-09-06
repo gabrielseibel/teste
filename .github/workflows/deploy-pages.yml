@@ -1,11 +1,13 @@
 name: Deploy GitHub Pages
 
-# Publica a página estática de apresentação (github-pages/) no GitHub Pages.
+# Publica o VERIFICA em si (site estático completo — não apenas uma página
+# de apresentação) no GitHub Pages.
 #
-# Importante: esta página é apenas apresentacional. O GitHub Pages hospeda
-# somente arquivos estáticos e não executa as rotas de API (backend) do
-# VERIFICA — a ferramenta funcional completa precisa rodar localmente ou em
-# um host com suporte a Node.js (ex.: Vercel). Ver README para detalhes.
+# O app roda inteiramente no navegador: o "build" abaixo é um export
+# estático do Next.js (output: 'export'), e a única chamada de rede em
+# tempo de uso é direta ao Supabase (URL/chave pública já versionadas em
+# .env.production — protegidas por Row Level Security, somente leitura).
+# Não há nenhum servidor Node.js, API route ou função serverless envolvida.
 #
 # Pré-requisito único (manual, uma vez): em Settings > Pages deste
 # repositório, definir "Source" como "GitHub Actions".
@@ -13,9 +15,8 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - "github-pages/**"
-      - ".github/workflows/deploy-pages.yml"
+    paths-ignore:
+      - "**.md"
   workflow_dispatch: {}
 
 permissions:
@@ -28,14 +29,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build (export estático)
+        env:
+          # Nome do repositório → https://<usuário>.github.io/<repositório>/
+          GITHUB_PAGES_BASE_PATH: /${{ github.event.repository.name }}
+        run: npm run build
+
+      - name: Marcar saída para o GitHub Pages (.nojekyll)
+        # Sem isso, o GitHub Pages tenta processar a saída com Jekyll, que
+        # ignora por padrão pastas começando com "_" (como a "_next" do
+        # Next.js) e quebra o carregamento de CSS/JS.
+        run: touch ./out/.nojekyll
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -50,8 +72,15 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./github-pages
+          path: ./out
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
