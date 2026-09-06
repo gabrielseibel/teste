@@ -1,40 +1,28 @@
 /** @type {import('next').NextConfig} */
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  "connect-src 'self'",
-  "worker-src 'self' blob:",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'",
-].join('; ');
-
-const securityHeaders = [
-  { key: 'Content-Security-Policy', value: csp },
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
-  { key: 'X-XSS-Protection', value: '0' },
-];
+// O VERIFICA é publicado como site 100% estático no GitHub Pages — não há
+// servidor Next.js em produção, então não é possível usar Route Handlers,
+// middleware, otimização de imagem sob demanda nem o `headers()` do Next
+// (GitHub Pages não permite configurar cabeçalhos HTTP de resposta; a
+// política de segurança de conteúdo é aplicada via <meta> em layout.tsx,
+// que cobre a maior parte das diretivas — X-Frame-Options e afins não têm
+// equivalente em <meta> e ficam de fora nesse tipo de hospedagem).
+//
+// `GITHUB_PAGES_BASE_PATH` é definido apenas pelo workflow de deploy
+// (.github/workflows/deploy-pages.yml), com o nome do repositório — o site
+// é publicado em `https://<usuário>.github.io/<repositório>/`. Em
+// desenvolvimento local e em outros hosts (Vercel, Netlify, etc.) a
+// variável fica vazia e o app roda normalmente na raiz.
+const basePath = process.env.GITHUB_PAGES_BASE_PATH || '';
 
 const nextConfig = {
+  output: 'export',
+  basePath,
+  assetPrefix: basePath ? `${basePath}/` : undefined,
+  trailingSlash: true,
   reactStrictMode: true,
   poweredByHeader: false,
   eslint: {
     ignoreDuringBuilds: false,
-  },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: securityHeaders,
-      },
-    ];
   },
 };
 

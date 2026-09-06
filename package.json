@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npx --yes serve@14 out",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -18,10 +18,8 @@
     "next": "14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tesseract.js": "^5.1.1",
     "zod": "^3.23.8"
-  },
-  "optionalDependencies": {
-    "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

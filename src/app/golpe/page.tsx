@@ -10,7 +10,7 @@ import { RecommendationLists } from '@/components/RecommendationLists';
 import { EmergencyBanner } from '@/components/EmergencyBanner';
 import { FollowUpQuestions } from '@/components/FollowUpQuestions';
 import { SourceList } from '@/components/SourceList';
-import { analyzeScamRequest, ApiRequestError, type PreviousAnswer } from '@/lib/apiClient';
+import { analyzeScamRequest, AnalysisError, type PreviousAnswer } from '@/lib/analysisClient';
 import { SCAM_RISK_META } from '@/lib/utils';
 import type { ScamAnalysisResult } from '@/features/scam-analysis/types';
 
@@ -45,7 +45,7 @@ export default function GolpeAnalysisPage() {
         setResult(result);
         setPhase('result');
       } catch (err) {
-        setError(err instanceof ApiRequestError ? err.message : 'Não foi possível concluir a análise agora.');
+        setError(err instanceof AnalysisError ? err.message : 'Não foi possível concluir a análise agora.');
         setPhase('form');
       }
     },
@@ -63,7 +63,7 @@ export default function GolpeAnalysisPage() {
       });
       setResult(result);
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Não foi possível atualizar a análise agora.');
+      setError(err instanceof AnalysisError ? err.message : 'Não foi possível atualizar a análise agora.');
     } finally {
       setQuestionsSubmitting(false);
     }

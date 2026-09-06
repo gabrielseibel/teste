@@ -23,7 +23,7 @@ export async function processImageField(file: File | null): Promise<ProcessedIma
     return { error: validation.reason ?? 'Arquivo de imagem inválido.' };
   }
 
-  const ocr = await extractTextFromImage(bytes);
+  const ocr = await extractTextFromImage(file);
   if (!ocr.available) {
     return { warning: ocr.reason };
   }

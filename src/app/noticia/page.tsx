@@ -10,7 +10,7 @@ import { EvidenceList } from '@/components/EvidenceList';
 import { SimpleCardList } from '@/components/SimpleCardList';
 import { FollowUpQuestions } from '@/components/FollowUpQuestions';
 import { SourceList } from '@/components/SourceList';
-import { analyzeNewsRequest, ApiRequestError, type PreviousAnswer } from '@/lib/apiClient';
+import { analyzeNewsRequest, AnalysisError, type PreviousAnswer } from '@/lib/analysisClient';
 import { NEWS_CLASSIFICATION_META } from '@/lib/utils';
 import type { FakeNewsAnalysisResult } from '@/features/fake-news/types';
 
@@ -43,7 +43,7 @@ export default function NoticiaAnalysisPage() {
       setResult(result);
       setPhase('result');
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Não foi possível concluir a análise agora.');
+      setError(err instanceof AnalysisError ? err.message : 'Não foi possível concluir a análise agora.');
       setPhase('form');
     }
   }, []);
@@ -59,7 +59,7 @@ export default function NoticiaAnalysisPage() {
       });
       setResult(result);
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Não foi possível atualizar a análise agora.');
+      setError(err instanceof AnalysisError ? err.message : 'Não foi possível atualizar a análise agora.');
     } finally {
       setQuestionsSubmitting(false);
     }
